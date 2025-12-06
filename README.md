@@ -90,6 +90,10 @@ https://hailo.ai/applications/industrial-automation/automatic-optical-inspection
 
 https://hailo.ai/blog/ai-object-detection-on-the-edge-making-the-right-choice/
 
+
+# [!] HAILO8 
+
+
 # Impl
 
 https://github.com/hailo-ai
@@ -123,3 +127,30 @@ https://hub.degirum.com/runtime/hailo
 https://community.hailo.ai/t/hailo-emulation-failing/14357
 
 no hope for emu
+
+Steps
+
+- https://iambillmeyer.com/posts/2025-01-06-getting-started-with-hailo-ai/
+
+10 by default, need hailo 8
+
+d1af769eb1d8074c5a0151a37b22b46bd483e5a7 - v4.20.0
+
+git checkout tags/v4.20.0
+
+Unknown argument install
+
+cmake -S. -Bbuild -DCMAKE_BUILD_TYPE=Release && sudo cmake --build build --config release --target install
+
+linux_x86_64
+
+
+hailortcli scan
+
+sudo hailortcli fw-control identify
+
+
+./hailort/scripts/download_hefs.sh
+~/Work/iglu/hailort/build/hailort/libhailort/examples/cpp
+
+../../hailort/build/hailort/libhailort/examples/cpp/async_infer_advanced_example/cpp_async_infer_advanced_example
