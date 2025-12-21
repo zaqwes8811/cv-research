@@ -26,3 +26,5 @@ pip install --upgrade inference  # failed
 https://docs.ultralytics.com/modes/train/
 
 https://docs.ultralytics.com/datasets/detect/coco8/
+
+!! https://community.hailo.ai/t/retrain-yolov5-on-a-custom-dataset/1552
