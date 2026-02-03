@@ -242,3 +242,8 @@ Validation failed, can't compile cprt file
 https://github.com/DeGirum/hailo_examples/blob/main/hailo_model_zoo.md
 
 A .ckpt file is a checkpoint file that stores the state of a machine learning model, most commonly from PyTorch.
+
+# VSCode
+
+ssh ...@.. to Add and than password
+
