@@ -1,5 +1,6 @@
 # using a CUDA supported Ubuntu 22.04 image as base
-FROM nvidia/cuda:11.8.0-cudnn8-devel-ubuntu22.04 AS base_cuda
+FROM nvidia/cuda:13.1.1-cudnn-devel-ubuntu22.04 AS base_cuda
+#FROM nvidia/cuda:11.8.0-cudnn8-devel-ubuntu22.04 AS base_cuda
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV PYTHONDONTWRITEBYTECODE=1
