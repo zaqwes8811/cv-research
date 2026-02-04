@@ -199,7 +199,10 @@ python3 ../tidy_data.py
 # Now from data folder
 git clone https://github.com/hailo-ai/hailo_model_zoo
 
-cd hailo_model_zoo/training/yolov5
+cd hailo_model_zoo
+git checkout 64a65cbcbc0a80d7e55aca5035c3b2651351bac5 
+
+cd training/yolov5
 docker build -t yolov5:v0 .
 
 mkdir -p hailo/shared
@@ -222,6 +225,7 @@ sudo apt install nano -y
 
 
 python train.py --img 640 --batch 8 --epochs 100 --data dataset.yaml --weights yolov5s.pt
+python train.py --img 640 --batch 8 --epochs 10 --data dataset.yaml --weights yolov5s.pt
 
 # Monitor
 sudo apt install lm-sensors
@@ -238,5 +242,55 @@ python3 models/export.py --weights runs/exp1/weights/best.pt --img-size 640 --op
 
 python3 models/export.py --weights runs/exp1/weights/best.pt --img-size 640
 
-cp runs/exp1/weights/best.onnx /home/hailo/shared/
+or
+
+python3 models/export.py --weights runs/exp1/weights/best.pt --img 640
+
+cp runs/exp0/weights/best.onnx /home/hailo/shared/
 ```
+
+2. Compile
+
+```
+
+! Use run-file or docker-image from Hailo
+
+# ! Need Hailo account to download some stuff
+
+docker build -t hailo_compiler:v0 .
+
+docker run -it --name compile_onnx_file --gpus all --ipc=host -v $PWD:/home/hailo/shared hailo_compiler:v0
+
+
+git clone https://github.com/hailo-ai/hailo_model_zoo.git
+cd hailo_model_zoo
+git checkout 64a65cbcbc0a80d7e55aca5035c3b2651351bac5   # < Need it
+pip install -e .
+
+```
+
+3. Install with run
+
+```
+sudo apt install python3-tk graphviz libgraphviz-dev
+./hailo8_ai_sw_suite_2025-10.run 
+```
+
+4. Docker
+
+```
+distribution=$(. /etc/os-release;echo $ID$VERSION_ID) \
+&& curl -s -L https://nvidia.github.io/nvidia-docker/gpgkey | sudo apt-key add - \
+&& curl -s -L \
+https://nvidia.github.io/nvidia-docker/$distribution/nvidia-docker.list \
+| sudo tee /etc/apt/sources.list.d/nvidia-docker.list
+
+sudo apt-get update
+sudo apt-get install -y nvidia-docker2
+sudo systemctl restart docker
+```
+
+hailomz compile --ckpt ./best.onnx --yaml hailo_model_zoo/cfg/networks/yolov5s.yaml  --classes 2 --hw-arch hailo8
+
+cd /local/
+hailomz compile --ckpt ./best.onnx --yaml hailo_model_zoo/hailo_model_zoo/cfg/networks/yolov5s.yaml  --calib-path ./datasets/images/train/ --classes 2 --hw-arch hailo8
