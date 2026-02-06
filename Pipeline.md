@@ -288,3 +288,11 @@ yolo train data=./data/dataset.yaml model=yolo26n.pt epochs=10 lr0=0.01
 
 python export.py --weights /workspace/yolov5_fixed/runs/detect/train2/weights/best.pt --img 640  --opset 11 --include onnx
 ```
+
+7. Export to `hef`
+
+```
+# Take vagrant from Yandex.Disk
+wget https://gist.githubusercontent.com/Yegorov/dc61c42aa4e89e139cd8248f59af6b3e/raw/20ac954e202fe6a038c2b4bb476703c02fe0df87/ya.py
+python3 ya.py https://disk.yandex.ru/d/Rb46K7Oi39jYzw .
+```
