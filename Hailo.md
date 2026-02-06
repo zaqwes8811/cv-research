@@ -207,6 +207,8 @@ docker build -t yolov5:v0 .
 
 mkdir -p hailo/shared
 
+tmux new-session -y train
+
 docker run -it --name custom_training --gpus all --ipc=host -v $PWD:/home/hailo/shared yolov5:v0
 
 # ERROR: docker: Error response from daemon: could not select device driver "" with capabilities: [[gpu]]
@@ -225,7 +227,7 @@ sudo apt install nano -y
 
 
 python train.py --img 640 --batch 8 --epochs 100 --data dataset.yaml --weights yolov5s.pt
-python train.py --img 640 --batch 8 --epochs 10 --data dataset.yaml --weights yolov5s.pt
+python train.py --img 640 --batch 16 --epochs 10 --data dataset.yaml --weights yolov5s.pt
 
 # Monitor
 sudo apt install lm-sensors
