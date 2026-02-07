@@ -283,7 +283,7 @@ python val.py --data dataset.yaml --weights runs/train/exp/weights/best.onnx
 Troubles:
 export to onnx failed read on hailo side
 
-python export.py --weights runs/train/exp2/weights/best.pt --img 640  --opset 11 --include onnx
+python export.py --weights runs/train/exp2/weights/best.pt --imgsz 640 480 --batch-size 1 --opset 18 --include onnx
 
 
 python export.py --weights runs/train/exp2/weights/best.pt --img 640 --opset 12 --grid --end2end --include onnx
@@ -334,4 +334,6 @@ No errors
  wget https://github.com/ultralytics/yolov5/releases/download/v7.0/yolov5s.pt -q
 (.venv) root@97188a432527:/workspace/yolov5_fixed# python /home/hailo/shared/export_for_hailo.py --weights /workspace/yolov5_fixed/yolov5s.pt --img-size 640 --opset 18
 
+
+hailo_model_zoo/cfg/networks/yolov5s.yaml
 ```
