@@ -292,6 +292,13 @@ sudo apt-get install -y nvidia-docker2
 sudo systemctl restart docker
 ```
 
+# Set environment variable to force CPU
+export CUDA_VISIBLE_DEVICES=-1
+
+# Or explicitly force CPU
+export TF_CPP_MIN_LOG_LEVEL=3
+export TF_FORCE_GPU_ALLOW_GROWTH=false
+
 hailomz compile --ckpt ./best.onnx --yaml hailo_model_zoo/cfg/networks/yolov5s.yaml  --classes 2 --hw-arch hailo8
 
 cd /local/

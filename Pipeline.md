@@ -266,6 +266,8 @@ names:
 
 ```
 . /workspace/.venv/bin/activate
+cd yolov5_fixed
+
 python train.py --img 640 --batch 16 --epochs 10 --data dataset.yaml --weights yolov5s.pt
 
 ```
@@ -277,6 +279,14 @@ python export.py --weights runs/train/exp/weights/best.pt --img 640  --opset 11 
 
 python detect.py --data dataset.yaml --weights runs/train/exp/weights/best.onnx
 python val.py --data dataset.yaml --weights runs/train/exp/weights/best.onnx
+
+Troubles:
+export to onnx failed read on hailo side
+
+python export.py --weights runs/train/exp2/weights/best.pt --img 640  --opset 11 --include onnx
+
+
+python export.py --weights runs/train/exp2/weights/best.pt --img 640 --opset 12 --grid --end2end --include onnx
 ```
 
 6. Other NN
@@ -287,6 +297,11 @@ cp -R ../datasets/ data/
 yolo train data=./data/dataset.yaml model=yolo26n.pt epochs=10 lr0=0.01
 
 python export.py --weights /workspace/yolov5_fixed/runs/detect/train2/weights/best.pt --img 640  --opset 11 --include onnx
+
+python export.py --weights /workspace/yolov5_fixed/runs/detect/train2/weights/best.pt --img 640  \
+    --simplify \
+    --opset 11 --include onnx
+
 ```
 
 7. Export to `hef`
@@ -294,5 +309,29 @@ python export.py --weights /workspace/yolov5_fixed/runs/detect/train2/weights/be
 ```
 # Take vagrant from Yandex.Disk
 wget https://gist.githubusercontent.com/Yegorov/dc61c42aa4e89e139cd8248f59af6b3e/raw/20ac954e202fe6a038c2b4bb476703c02fe0df87/ya.py
-python3 ya.py https://disk.yandex.ru/d/Rb46K7Oi39jYzw .
+python3 ya.py https://disk.yandex.ru/d/-QrQowvO8R8MBA .
+
+
+
+cd /local/
+hailomz compile \
+    --ckpt /local/shared_with_docker/best.onnx \
+    --yaml hailo_model_zoo/cfg/networks/yolov5s.yaml \
+    --calib-path /local/shared_with_docker/datasets/images/train/ \
+    --classes 2 --hw-arch hailo8
+
+hailomz compile \
+    --ckpt /local/shared_with_docker/yolov5s_simple.onnx \
+    --yaml hailo_model_zoo/cfg/networks/yolov5s.yaml \
+    --calib-path /local/shared_with_docker/datasets/images/train/ \
+    --classes 2 --hw-arch hailo8
+
+
+wget https://github.com/ultralytics/yolov5/releases/download/v3.0/yolov5s.pt -q
+
+No errors
+
+ wget https://github.com/ultralytics/yolov5/releases/download/v7.0/yolov5s.pt -q
+(.venv) root@97188a432527:/workspace/yolov5_fixed# python /home/hailo/shared/export_for_hailo.py --weights /workspace/yolov5_fixed/yolov5s.pt --img-size 640 --opset 18
+
 ```
