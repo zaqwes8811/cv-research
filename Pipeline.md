@@ -167,6 +167,24 @@ apt-get install -y \
 
 python3 -m venv .venv
 
+# 
+
+sudo apt update
+sudo apt install build-essential libssl-dev libffi-dev
+
+# First, install SSL development libraries
+sudo apt-get update
+sudo apt-get install libssl-dev
+
+# If you installed Python from source, recompile it
+cd /tmp/Python-3.10.13
+sudo make clean
+./configure --enable-optimizations --with-ssl-default-suites=openssl
+make -j $(nproc)
+sudo make altinstall
+
+python3.10 -m venv venv_3.10
+
 RUN git clone https://github.com/hailo-ai/yolov5.git --branch v2.0.1 && \
     cd yolov5 && \
     pip install --upgrade pip && \
@@ -207,6 +225,9 @@ wget https://github.com/ultralytics/yolov5/releases/download/v2.0/yolov5s.pt -q
 
 # Remove torch and torch vision
 
+export TORCH_CUDA_ARCH_LIST="7.5;8.0;8.6;8.9"
+python3 ./ultralytics/yolo/v8/detect/train.py
+
 
 # If using ultralytics pip package
 pip install ultralytics --upgrade
@@ -219,6 +240,8 @@ pip install -r requirements.txt
 
 
 pip install torch==2.1.2 torchvision==0.16.2 torchaudio==2.1.2 --index-url https://download.pytorch.org/whl/cu121
+
+pip install torch torchvision--index-url https://download.pytorch.org/whl/cu121
 
 
 https://download.pytorch.org/whl/cu128
@@ -266,6 +289,8 @@ names:
 
 ```
 . /workspace/.venv/bin/activate
+cd yolov5_fixed
+
 python train.py --img 640 --batch 16 --epochs 10 --data dataset.yaml --weights yolov5s.pt
 
 ```
@@ -273,10 +298,18 @@ python train.py --img 640 --batch 16 --epochs 10 --data dataset.yaml --weights y
 4. Export to `onnx`
 
 ```
-python export.py --weights runs/train/exp/weights/best.pt --img 640  --opset 11 --include onnx
+python models/export.py --weights /home/hailo/shared/shared_with_docker/runs/train/exp3/weights/best.pt --img 640 640
 
 python detect.py --data dataset.yaml --weights runs/train/exp/weights/best.onnx
 python val.py --data dataset.yaml --weights runs/train/exp/weights/best.onnx
+
+Troubles:
+export to onnx failed read on hailo side
+
+python export.py --weights runs/train/exp2/weights/best.pt --imgsz 640 640 --batch-size 1 --opset 18 --include onnx
+
+
+python export.py --weights runs/train/exp2/weights/best.pt --img 640 --opset 12 --grid --end2end --include onnx
 ```
 
 6. Other NN
@@ -287,4 +320,57 @@ cp -R ../datasets/ data/
 yolo train data=./data/dataset.yaml model=yolo26n.pt epochs=10 lr0=0.01
 
 python export.py --weights /workspace/yolov5_fixed/runs/detect/train2/weights/best.pt --img 640  --opset 11 --include onnx
+
+python export.py --weights /workspace/yolov5_fixed/runs/detect/train2/weights/best.pt --img 640  \
+    --simplify \
+    --opset 11 --include onnx
+
 ```
+
+7. Export to `hef`
+
+```
+# Take vagrant from Yandex.Disk
+wget https://gist.githubusercontent.com/Yegorov/dc61c42aa4e89e139cd8248f59af6b3e/raw/20ac954e202fe6a038c2b4bb476703c02fe0df87/ya.py
+python3 ya.py https://disk.yandex.ru/d/-QrQowvO8R8MBA .
+
+
+
+cd /local/
+hailomz compile \
+    --ckpt /local/shared_with_docker/best.onnx \
+    --yaml hailo_model_zoo/cfg/networks/yolov5s.yaml \
+    --calib-path /local/shared_with_docker/datasets/images/train/ \
+    --classes 2 --hw-arch hailo8
+
+hailomz compile \
+    --ckpt /local/shared_with_docker/yolov5s_simple.onnx \
+    --yaml hailo_model_zoo/cfg/networks/yolov5s.yaml \
+    --calib-path /local/shared_with_docker/datasets/images/train/ \
+    --classes 2 --hw-arch hailo8
+
+
+wget https://github.com/ultralytics/yolov5/releases/download/v3.0/yolov5s.pt -q
+
+No errors
+
+ wget https://github.com/ultralytics/yolov5/releases/download/v7.0/yolov5s.pt -q
+(.venv) root@97188a432527:/workspace/yolov5_fixed# python /home/hailo/shared/export_for_hailo.py --weights /workspace/yolov5_fixed/yolov5s.pt --img-size 640 --opset 18
+
+
+hailo_model_zoo/cfg/networks/yolov5s.yaml
+```
+
+Idea1:
+- download yolov5s_v7.0
+- train on 5080Ti - good quality, but expotr troubles
+- export sep container with older torch
+- converto to hef with older tools
+
+Idea2:
+- donwload yolov5s_v..
+- train on Quadro/2080Ti and export
+
+
+18G
+python hailo_model_zoo/datasets/create_coco_tfrecord.py calib2017

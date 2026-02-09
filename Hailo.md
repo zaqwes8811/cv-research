@@ -205,11 +205,26 @@ git checkout 64a65cbcbc0a80d7e55aca5035c3b2651351bac5
 cd training/yolov5
 docker build -t yolov5:v0 .
 
+cd training/yolov8
+docker build -t yolov8:v0 .
+
 mkdir -p hailo/shared
 
 tmux new-session -y train
 
-docker run -it --name custom_training --gpus all --ipc=host -v $PWD:/home/hailo/shared yolov5:v0
+docker run -it --name custom_training-1 --gpus all --ipc=host -v $PWD:/home/hailo/shared yolov5:v0
+
+docker run -it --name custom_training_v8 --gpus all --ipc=host -v $PWD:/home/hailo/shared yolov8:v0
+
+python3 ./ultralytics/yolo/v8/detect/train.py --data dataset.yaml 
+#--img 640 --batch 8  --epochs 2 --data dataset.yaml
+
+https://github.com/hailo-ai/hailo_model_zoo/blob/master/training/yolov8/README.rst
+
+
+yolo task=detect mode=train model=yolov8n.pt imgsz=640 data=custom_data.yaml epochs=10 batch=8 name=yolov8n_custom
+
+python train.py --img 640 --batch 8  --epochs 1 --data dataset.yaml
 
 # ERROR: docker: Error response from daemon: could not select device driver "" with capabilities: [[gpu]]
 
@@ -227,7 +242,7 @@ sudo apt install nano -y
 
 
 python train.py --img 640 --batch 8 --epochs 100 --data dataset.yaml --weights yolov5s.pt
-python train.py --img 640 --batch 16 --epochs 10 --data dataset.yaml --weights yolov5s.pt
+python train.py --img 640 --batch 16 --epochs 2 --data dataset.yaml --weights yolov5s.pt
 
 # Monitor
 sudo apt install lm-sensors
@@ -243,6 +258,8 @@ cp -R  runs/ /home/hailo/shared/
 python3 models/export.py --weights runs/exp1/weights/best.pt --img-size 640 --opset 11  # Failed no opset key
 
 python3 models/export.py --weights runs/exp1/weights/best.pt --img-size 640
+
+python3 models/export.py --weights yolov5s.pt --img-size 640 640 --opset 12
 
 or
 
@@ -292,7 +309,30 @@ sudo apt-get install -y nvidia-docker2
 sudo systemctl restart docker
 ```
 
+# Set environment variable to force CPU
+export CUDA_VISIBLE_DEVICES=-1
+
+# Or explicitly force CPU
+export TF_CPP_MIN_LOG_LEVEL=3
+export TF_FORCE_GPU_ALLOW_GROWTH=false
+
 hailomz compile --ckpt ./best.onnx --yaml hailo_model_zoo/cfg/networks/yolov5s.yaml  --classes 2 --hw-arch hailo8
 
 cd /local/
 hailomz compile --ckpt ./best.onnx --yaml hailo_model_zoo/hailo_model_zoo/cfg/networks/yolov5s.yaml  --calib-path ./datasets/images/train/ --classes 2 --hw-arch hailo8
+
+hailomz compile --ckpt /local/shared_with_docker/yolov5s.onnx --yaml hailo_model_zoo/hailo_model_zoo/cfg/networks/yolov5s.yaml  --calib-path /local/shared_with_docker/datasets/images/train/ --classes 2 --hw-arch hailo8
+
+hailomz compile --ckpt ./yolov5s.onnx --yaml hailo_model_zoo/cfg/networks/yolov5s.yaml  --calib-path ../datasets/images/train/ --classes 2 --hw-arch hailo8
+
+# Hailo8 only latest
+https://github.com/hailo-ai/hailo_model_zoo/blob/v2.17/docs/GETTING_STARTED.rst
+153  git clone -b v2.17 https://github.com/hailo-ai/hailo_model_zoo.git
+154  cd hailo_model_zoo; pip install -e .
+
+
+python hailo_model_zoo/datasets/create_coco_tfrecord.py val2017 --img ~/ds/val2017 --det ~/ds//annotations
+python hailo_model_zoo/datasets/create_coco_tfrecord.py calib2017 --img ~/ds//train2017 --det ~/ds//annotations
+
+
+https://habr.com/ru/articles/714232/
