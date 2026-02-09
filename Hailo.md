@@ -336,3 +336,18 @@ python hailo_model_zoo/datasets/create_coco_tfrecord.py calib2017 --img ~/ds//tr
 
 
 https://habr.com/ru/articles/714232/
+
+
+#############################################
+
+
+torch.onnx.export(
+    model,
+    dummy_input,
+    "model.onnx",
+    input_names=['input'],
+    output_names=['output'],
+    opset_version=18,  # Use older opset for compatibility
+    dynamic_axes=None,
+    do_constant_folding=True
+)
