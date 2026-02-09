@@ -278,7 +278,12 @@ names:
 . /workspace/.venv/bin/activate
 cd yolov5_fixed
 
-python train.py --img 640 --batch 16 --epochs 10 --data dataset.yaml --weights yolov5s.pt
+7.0 - can't import
+wget https://github.com/ultralytics/yolov5/releases/download/v3.0/yolov5s.pt -q
+wget https://github.com/ultralytics/yolov5/releases/download/v4.0/yolov5s.pt -q # No
+wget https://github.com/ultralytics/yolov5/releases/download/v5.0/yolov5s.pt -q # No
+wget https://github.com/ultralytics/yolov5/releases/download/v6.0/yolov5s.pt -q # No
+python train.py --img 640 640 --batch 8 --epochs 100 --data dataset.yaml --weights yolov5s.pt
 
 ```
 
