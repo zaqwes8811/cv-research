@@ -351,3 +351,18 @@ torch.onnx.export(
     dynamic_axes=None,
     do_constant_folding=True
 )
+
+
+# T2000
+python train.py --cache --img 640 640 --batch 8  --epochs 100 --data dataset.yaml --hyp=hyp.scratch-low.yaml --cfg=custom_yolov5s_v3.0.yaml
+
+# Текущие настройки работают идеально
+lr0: 0.001     # Оставить
+cls: 0.5       # Оставить (хорошо работает)
+obj: 1.0       # Оставить
+
+# hyp_adjust_2class.yaml - Optional tweaks
+lr0: 0.0005  # Slightly lower for fine-tuning
+cls: 0.3     # Reduce classification loss (only 2 classes)
+obj: 0.8     # Slightly reduce objectness loss
+anchor_t: 3.5 # Stricter anchor matching
