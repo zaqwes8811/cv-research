@@ -400,4 +400,50 @@ python detect.py \
 
 python detect.py --weights runs/exp0/weights/best.pt --source ../datasets/images/val/106-with-mask.jpg
 
-python train.py --cache --img 640 --batch 9  --epochs 20 --data dataset.yaml     --hyp=hyp.scratch-low.yaml     --weights runs/exp0/weights/best.pt     --cfg=custom_yolov5s_v3.0.yaml
+python train.py --cache --img 640 --batch 9  --epochs 30 --data dataset.yaml     --hyp=hyp.scratch-low.yaml     --weights runs/exp5/weights/best.pt     --cfg=custom_yolov5s_v3.0.yaml
+
+
+python train.py --cache --img 640 --batch 9  --epochs 24 --data dataset.yaml \
+    --hyp=hyp.scratch-low.yaml \
+    --weights runs/exp0/weights/best.pt \
+    --cfg=custom_yolov5s_v3.0.yaml
+
+
+python train.py --cache --img 640 --batch 9  --epochs 24 --data dataset.yaml \
+    --hyp=hyp.scratch-low-rate.yaml \
+    --weights runs/exp0/weights/best.pt \
+    --cfg=custom_yolov5s_v3.0.yaml
+
+
+python train.py --cache --img 640 --batch 9  --epochs 24 --data dataset.yaml \
+    --hyp=hyp.scratch-low.yaml \
+    --weights yolov5s.pt \
+    --cfg=custom_yolov5s_v3.0.yaml
+
+# Two step
+
+#!/bin/bash
+# train_high_precision.sh
+
+# ШАГ 1: Обучите с акцентом на precision
+python train.py \
+    --data custom_data.yaml \
+    --cfg custom_yolov5s.yaml \
+    --weights yolov5s.pt \
+    --hyp hyp_precision_v1.yaml \
+    --epochs 50 \
+    --batch 16 \
+    --img 640 \
+    --name yolov5s_precision_1
+
+# ШАГ 2: Возьмите лучшую модель и дообучите с низким LR
+python train.py \
+    --weights runs/train/yolov5s_precision_1/weights/best.pt \
+    --data custom_data.yaml \
+    --cfg custom_yolov5s.yaml \
+    --hyp hyp_precision_v2.yaml \
+    --epochs 30 \
+    --batch 16 \
+    --img 640 \
+    --lr0 0.0005 \
+    --name yolov5s_precision_2
