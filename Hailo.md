@@ -354,10 +354,14 @@ torch.onnx.export(
 
 
 # T2000
-python train.py --cache --img 640 640 --batch 9  --epochs 100 --data dataset.yaml --hyp=hyp.scratch-low.yaml --weights yolov5s.pt
+python train.py --cache --img 640 640 --batch 9  --epochs 16 --data dataset.yaml \
+    --hyp=hyp.scratch-low.yaml --weights yolov5s.pt \
+    --cfg=custom_yolov5s_v3.0.yaml
 
 
---cfg=custom_yolov5s_v3.0.yaml
+python train.py --cache --img 640 --batch 9  --epochs 16 --data dataset.yaml \
+    --hyp=hyp.scratch-low.yaml --weights yolov5s.pt \
+    --cfg=custom_yolov5s_v3.0.yaml
 
 # Текущие настройки работают идеально
 lr0: 0.001     # Оставить
@@ -369,3 +373,31 @@ lr0: 0.0005  # Slightly lower for fine-tuning
 cls: 0.3     # Reduce classification loss (only 2 classes)
 obj: 0.8     # Slightly reduce objectness loss
 anchor_t: 3.5 # Stricter anchor matching
+
+
+python train.py --cache --img 640 640 --batch 9  --epochs 16 --data dataset.yaml \
+    --hyp=hyp.scratch-low.yaml \
+    --weights runs/exp0/weights/best.pt \
+    --cfg=custom_yolov5s_v3.0.yaml
+
+# No key
+    --conf 0.5
+
+python val.py \
+    --weights runs/exp0/weights/best.pt \
+    --data dataset.yaml \
+    --img 640 \
+    --batch 16
+  
+    --conf-thres 0.5 \
+    --iou-thres 0.45  # --iou-thres, не --iou!
+
+python detect.py \
+    --weights runs/exp0/weights/best.pt \
+    --source ../datasets/images/val \
+    --view_img 1 \
+    --img 640
+
+python detect.py --weights runs/exp0/weights/best.pt --source ../datasets/images/val/106-with-mask.jpg
+
+python train.py --cache --img 640 --batch 9  --epochs 20 --data dataset.yaml     --hyp=hyp.scratch-low.yaml     --weights runs/exp0/weights/best.pt     --cfg=custom_yolov5s_v3.0.yaml
