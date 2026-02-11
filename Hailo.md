@@ -354,7 +354,10 @@ torch.onnx.export(
 
 
 # T2000
-python train.py --cache --img 640 640 --batch 8  --epochs 100 --data dataset.yaml --hyp=hyp.scratch-low.yaml --cfg=custom_yolov5s_v3.0.yaml
+python train.py --cache --img 640 640 --batch 9  --epochs 100 --data dataset.yaml --hyp=hyp.scratch-low.yaml --weights yolov5s.pt
+
+
+--cfg=custom_yolov5s_v3.0.yaml
 
 # Текущие настройки работают идеально
 lr0: 0.001     # Оставить
