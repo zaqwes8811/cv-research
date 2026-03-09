@@ -336,3 +336,114 @@ python hailo_model_zoo/datasets/create_coco_tfrecord.py calib2017 --img ~/ds//tr
 
 
 https://habr.com/ru/articles/714232/
+
+
+#############################################
+
+
+torch.onnx.export(
+    model,
+    dummy_input,
+    "model.onnx",
+    input_names=['input'],
+    output_names=['output'],
+    opset_version=18,  # Use older opset for compatibility
+    dynamic_axes=None,
+    do_constant_folding=True
+)
+
+
+# T2000
+python train.py --cache --img 640 640 --batch 9  --epochs 16 --data dataset.yaml \
+    --hyp=hyp.scratch-low.yaml --weights yolov5s.pt \
+    --cfg=custom_yolov5s_v3.0.yaml
+
+
+python train.py --cache --img 640 --batch 9  --epochs 16 --data dataset.yaml \
+    --hyp=hyp.scratch-low.yaml --weights yolov5s.pt \
+    --cfg=custom_yolov5s_v3.0.yaml
+
+# Текущие настройки работают идеально
+lr0: 0.001     # Оставить
+cls: 0.5       # Оставить (хорошо работает)
+obj: 1.0       # Оставить
+
+# hyp_adjust_2class.yaml - Optional tweaks
+lr0: 0.0005  # Slightly lower for fine-tuning
+cls: 0.3     # Reduce classification loss (only 2 classes)
+obj: 0.8     # Slightly reduce objectness loss
+anchor_t: 3.5 # Stricter anchor matching
+
+
+python train.py --cache --img 640 640 --batch 9  --epochs 16 --data dataset.yaml \
+    --hyp=hyp.scratch-low.yaml \
+    --weights runs/exp0/weights/best.pt \
+    --cfg=custom_yolov5s_v3.0.yaml
+
+# No key
+    --conf 0.5
+
+python val.py \
+    --weights runs/exp0/weights/best.pt \
+    --data dataset.yaml \
+    --img 640 \
+    --batch 16
+  
+    --conf-thres 0.5 \
+    --iou-thres 0.45  # --iou-thres, не --iou!
+
+python detect.py \
+    --weights runs/exp0/weights/best.pt \
+    --source ../datasets/images/val \
+    --view_img 1 \
+    --img 640
+
+python detect.py --weights runs/exp0/weights/best.pt --source ../datasets/images/val/106-with-mask.jpg
+
+python train.py --cache --img 640 --batch 9  --epochs 30 --data dataset.yaml     --hyp=hyp.scratch-low.yaml     --weights runs/exp5/weights/best.pt     --cfg=custom_yolov5s_v3.0.yaml
+
+
+python train.py --cache --img 640 --batch 9  --epochs 24 --data dataset.yaml \
+    --hyp=hyp.scratch-low.yaml \
+    --weights runs/exp0/weights/best.pt \
+    --cfg=custom_yolov5s_v3.0.yaml
+
+
+python train.py --cache --img 640 --batch 9  --epochs 24 --data dataset.yaml \
+    --hyp=hyp.scratch-low-rate.yaml \
+    --weights runs/exp0/weights/best.pt \
+    --cfg=custom_yolov5s_v3.0.yaml
+
+
+python train.py --cache --img 640 --batch 9  --epochs 24 --data dataset.yaml \
+    --hyp=hyp.scratch-low.yaml \
+    --weights yolov5s.pt \
+    --cfg=custom_yolov5s_v3.0.yaml
+
+# Two step
+
+#!/bin/bash
+# train_high_precision.sh
+
+# ШАГ 1: Обучите с акцентом на precision
+python train.py \
+    --data custom_data.yaml \
+    --cfg custom_yolov5s.yaml \
+    --weights yolov5s.pt \
+    --hyp hyp_precision_v1.yaml \
+    --epochs 50 \
+    --batch 16 \
+    --img 640 \
+    --name yolov5s_precision_1
+
+# ШАГ 2: Возьмите лучшую модель и дообучите с низким LR
+python train.py \
+    --weights runs/train/yolov5s_precision_1/weights/best.pt \
+    --data custom_data.yaml \
+    --cfg custom_yolov5s.yaml \
+    --hyp hyp_precision_v2.yaml \
+    --epochs 30 \
+    --batch 16 \
+    --img 640 \
+    --lr0 0.0005 \
+    --name yolov5s_precision_2

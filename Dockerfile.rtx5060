@@ -1,0 +1,16 @@
+
+# Dockerfile.rtx5060
+FROM nvidia/cuda:12.4.0-devel-ubuntu22.04
+
+# Install Python
+RUN apt-get update && apt-get install -y python3.10 python3-pip
+
+# Install PyTorch 2.5.0 with CUDA 12.4
+RUN pip3 install torch==2.5.0 torchvision==0.20.0 torchaudio==2.5.0 --index-url https://download.pytorch.org/whl/cu124
+
+# Install YOLO and ONNX tools
+RUN pip3 install ultralytics==8.2.0
+RUN pip3 install onnx onnxsim onnxruntime
+
+WORKDIR /workspace
+CMD ["bash"]

@@ -106,6 +106,8 @@ cd /home/hailo/shared
 
 nano data/dataset.yaml
 
+nano dataset.yaml
+
 train: ../datasets/images/train
 val: ../datasets/images/val
 nc: 2
@@ -169,21 +171,6 @@ python3 -m venv .venv
 
 # 
 
-sudo apt update
-sudo apt install build-essential libssl-dev libffi-dev
-
-# First, install SSL development libraries
-sudo apt-get update
-sudo apt-get install libssl-dev
-
-# If you installed Python from source, recompile it
-cd /tmp/Python-3.10.13
-sudo make clean
-./configure --enable-optimizations --with-ssl-default-suites=openssl
-make -j $(nproc)
-sudo make altinstall
-
-python3.10 -m venv venv_3.10
 
 RUN git clone https://github.com/hailo-ai/yolov5.git --branch v2.0.1 && \
     cd yolov5 && \
@@ -291,7 +278,12 @@ names:
 . /workspace/.venv/bin/activate
 cd yolov5_fixed
 
-python train.py --img 640 --batch 16 --epochs 10 --data dataset.yaml --weights yolov5s.pt
+7.0 - can't import
+wget https://github.com/ultralytics/yolov5/releases/download/v3.0/yolov5s.pt -q
+wget https://github.com/ultralytics/yolov5/releases/download/v4.0/yolov5s.pt -q # No
+wget https://github.com/ultralytics/yolov5/releases/download/v5.0/yolov5s.pt -q # No
+wget https://github.com/ultralytics/yolov5/releases/download/v6.0/yolov5s.pt -q # No
+python train.py --img 640 640 --batch 8 --epochs 100 --data dataset.yaml --weights yolov5s.pt
 
 ```
 
@@ -374,3 +366,21 @@ Idea2:
 
 18G
 python hailo_model_zoo/datasets/create_coco_tfrecord.py calib2017
+
+
+# Idea
+# For current GPUs (up to SM 9.0):
+
+Train with, may help with export
+
+2.6+ change a log
+pip install torch==2.5.0 torchvision==0.20.0 torchaudio==2.5.0 --index-url https://download.pytorch.org/whl/cu124
+
+
+docker build -t :v0 .
+
+docker build -t rtx5060-pytorch -f Dockerfile.rtx5060 .
+docker run --gpus all -it rtx5060-pytorch python3 -c "import torch; print(torch.cuda.get_device_capability())"
+
+
+docker build -t rtx5060-sm120-pytorch -f Dockerfile.sm120 .
